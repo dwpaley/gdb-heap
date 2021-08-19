@@ -226,7 +226,11 @@ class PyObjectPtr(WrappedPointer):
         if tp_flags & Py_TPFLAGS_DICT_SUBCLASS:
             return PyDictObjectPtr(addr.cast(caching_lookup_type('PyDictObject').pointer()))
 
-        tp_name = ob_type['tp_name'].string()
+        tp_name = ""
+        try:
+            tp_name = ob_type['tp_name'].string()
+        except UnicodeDecodeError:
+            pass
         if tp_name == 'instance':
             __type_PyInstanceObjectPtr = caching_lookup_type('PyInstanceObject').pointer()
             return PyInstanceObjectPtr(addr.cast(__type_PyInstanceObjectPtr))
@@ -277,7 +281,7 @@ class PyUnicodeObjectPtr(PyObjectPtr):
     _typename = 'PyUnicodeObject'
 
     def categorize_refs(self, usage_set, level=0, detail=None):
-        m_str = int(self.field('str'))
+        m_str = int(self.field('data')['any'])
         usage_set.set_addr_category(m_str,
                                     Category('cpython', 'PyUnicodeObject buffer', detail),
                                     level)
@@ -291,9 +295,14 @@ class PyDictObjectPtr(PyObjectPtr):
     _typename = 'PyDictObject'
 
     def categorize_refs(self, usage_set, level=0, detail=None):
-        ma_table = int(self.field('ma_table'))
-        usage_set.set_addr_category(ma_table,
-                                    Category('cpython', 'PyDictEntry table', detail),
+        ma_keys = int(self.field('ma_keys'))
+        ma_values = int(self.field('ma_values'))
+
+        usage_set.set_addr_category(ma_keys,
+                                    Category('cpython', 'PyDictEntry keys', detail),
+                                    level)
+        usage_set.set_addr_category(ma_values,
+                                    Category('cpython', 'PyDictEntry values', detail),
                                     level)
         return True
 

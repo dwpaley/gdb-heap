@@ -361,7 +361,7 @@ class UsageSet(object):
             u = self.usage_by_address[addr]
             # Bail if we already have a more detailed categorization for the
             # address:
-            if level <= u.level:
+            if u.level is not None and level <= u.level:
                 if debug:
                     print ('addr 0x%x already has category %r (level %r)'
                            % (addr, u.category, u.level))

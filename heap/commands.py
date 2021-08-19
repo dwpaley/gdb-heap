@@ -71,6 +71,11 @@ class Heap(gdb.Command):
         except KeyboardInterrupt:
             pass # FIXME
 
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            #traceback.print_exception(e)
+
         t = Table(['Domain', 'Kind', 'Detail', 'Count', 'Allocated size'])
         for category in sorted(total_by_category.keys(),
                                key=total_by_category.get,
