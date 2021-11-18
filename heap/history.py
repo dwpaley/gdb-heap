@@ -78,25 +78,27 @@ class Diff(object):
                                       fmt_size(size_change),
                                       sign(count_change),
                                       fmt_size(count_change))
-        
+
     def as_changes(self):
-        result = self.chunk_report('Free-d blocks', self.old, self.old_minus_new)
-        result += self.chunk_report('New blocks', self.new, self.new_minus_old)
+        result = self.chunk_report('Free-d blocks', self.old, self.old_minus_new, self.new_minus_old)
+        result += self.chunk_report('New blocks', self.new, self.new_minus_old, self.old_minus_new)
         # FIXME: add changed chunks
         return result
 
-    def chunk_report(self, title, snapshot, set_of_usage):
+    def chunk_report(self, title, snapshot, set_of_usage, ref_set):
+        ref_strings = [fmt_addr(usage.start) for usage in ref_set]
         result = '%s:\n' % title
         if len(set_of_usage) == 0:
             result += '  (none)\n'
             return result
         for usage in sorted(set_of_usage,
-                            lambda u1, u2: cmp(u1.start, u2.start)):
-            result += ('  %s -> %s %8i bytes %20s |%s\n'
-                       % (fmt_addr(usage.start),
-                          fmt_addr(usage.start + usage.size-1),
-                          usage.size, usage.category, usage.hd))
+                            key=lambda x:x.start):
+            if fmt_addr(usage.start) not in ref_strings:
+                result += ('  %s -> %s %8i bytes %20s |%s\n'
+                           % (fmt_addr(usage.start),
+                              fmt_addr(usage.start + usage.size-1),
+                              usage.size, usage.category, usage.hd))
         return result
-    
+
 history = History()
 
